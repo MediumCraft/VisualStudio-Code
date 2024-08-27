@@ -319,8 +319,11 @@ export class ReviewZoneWidget extends ZoneWidget implements ICommentThreadWidget
 		this._commentThread.collapsibleState = languages.CommentThreadCollapsibleState.Collapsed;
 	}
 
-	public expand() {
+	public expand(setActive?: boolean) {
 		this._commentThread.collapsibleState = languages.CommentThreadCollapsibleState.Expanded;
+		if (setActive) {
+			this.commentService.setActiveCommentAndThread(this.uniqueOwner, { thread: this._commentThread });
+		}
 	}
 
 	public getGlyphPosition(): number {
@@ -328,14 +331,6 @@ export class ReviewZoneWidget extends ZoneWidget implements ICommentThreadWidget
 			return this._commentGlyph.getPosition().position!.lineNumber;
 		}
 		return 0;
-	}
-
-	toggleExpand() {
-		if (this._isExpanded) {
-			this._commentThread.collapsibleState = languages.CommentThreadCollapsibleState.Collapsed;
-		} else {
-			this._commentThread.collapsibleState = languages.CommentThreadCollapsibleState.Expanded;
-		}
 	}
 
 	async update(commentThread: languages.CommentThread<IRange>) {
@@ -420,6 +415,7 @@ export class ReviewZoneWidget extends ZoneWidget implements ICommentThreadWidget
 		this._commentThreadDisposables.push(this._commentThread.onDidChangeCollapsibleState(state => {
 			if (state === languages.CommentThreadCollapsibleState.Expanded && !this._isExpanded) {
 				this.show(this.arrowPosition(this._commentThread.range), 2);
+				this._commentThreadWidget.ensureFocusIntoNewEditingComment();
 				return;
 			}
 
